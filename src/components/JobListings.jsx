@@ -1,9 +1,35 @@
 import React from 'react'
 import JobListing from './JobListing'
-import Jobs from '../jobs.json'  //importing jobs array from jobs.json
-console.log(Jobs);
+//  import Jobs from '../jobs.json'  //importing jobs array from jobs.json
+import { useState, useEffect } from 'react';
+import Spinner from './spinner';
+//  
 const JobListings = ({isHome = false}) => {
-  const jobListings = isHome ? Jobs.slice(0, 3) : Jobs; //if isHome is true show only 3 jobs else show all jobs 
+  // const jobListings = isHome ? Jobs.slice(0, 3) : Jobs; //if isHome is true show only 3 jobs else show all jobs 
+  const [jobs, setJobs] = useState([]); //jobs exist state yes or no
+  const [loading, setLoading] = useState(true);
+  
+                    // useffect like onload of .net itruns after component renders
+  useEffect(() => { //useEffect is a hook that allows us to perform side effects in our components, it takes a function as a parameter and it runs after the component renders, we can use it to fetch data from an API, we can also specify a dependency array as a second parameter, if the dependency array is empty it runs only once when the component mounts, if the dependency array has values it runs every time the values in the dependency array change
+    const fetchJobs = async () => {
+      const apiUrl = isHome ? '/api/jobs?_limit=3' : '/api/jobs';  
+      try {
+        const res = await fetch(apiUrl);   
+        const data = await res.json();
+        setJobs(data);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+ fetchJobs();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-10">Loading...</div>;
+  }
+    
   return (
     <section className="bg-blue-50 px-4 py-10">
         <div className="container-xl lg:container m-auto">
@@ -13,11 +39,17 @@ const JobListings = ({isHome = false}) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
+   {loading ? (
+  <Spinner loading={loading} />
+) : (
+  <>
+    {jobs.map((job) => (
+      <JobListing key={job.id} job={job} />
+    ))}
+  </>
+)}
+
             
-             {/* show number of jobs */}
-            {jobListings.map((job) => (
-             <JobListing key={job.id} job={job} />
-              ))}
 
              
             {/* Job Listing 1 */}
